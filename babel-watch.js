@@ -91,11 +91,11 @@ program.parse(process.argv);
 
 const cwd = process.cwd();
 
-let only, ignore;
-
+let only, ignore, debug;
 
 if (program.only != null) only = arrayify(program.only, regexify);
 if (program.ignore != null) ignore = arrayify(program.ignore, regexify);
+debug = Boolean(program.debug || program.debugBrk || program.inspect);
 
 let transpileExtensions = babel.DEFAULT_EXTENSIONS;
 
@@ -357,6 +357,7 @@ function restartAppInternal() {
     event: 'babel-watch-start',
     pipe: pipeFilename,
     args: program.args,
+    debug: debug,
     handleUncaughtExceptions: !program.disableExHandler,
     transpileExtensions: transpileExtensions,
   });
@@ -383,7 +384,7 @@ function compile(filename, callback) {
   // Do not process config files since has already been done with the OptionManager
   // calls above and would introduce duplicates.
   opts.babelrc = false;
-  opts.sourceMaps = true;
+  opts.sourceMaps = debug ?  'inline' : true;
   opts.ast = false;
 
   return babel.transformFile(filename, opts, (err, result) => {
